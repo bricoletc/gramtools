@@ -55,6 +55,11 @@ namespace gram {
 
     using PathSites = std::vector<Marker>;
 
+    SearchStates selection(const SearchStates &search_states,
+                                 const uint64_t &read_length,
+                                 const PRG_Info &prg_info,
+                                 const uint32_t &random_seed);
+
     std::set<PathSites> get_unique_path_sites(const SearchStates &search_states);
 
     SearchStates filter_for_path_sites(const PathSites &target_path_sites,

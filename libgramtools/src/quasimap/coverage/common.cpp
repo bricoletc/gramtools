@@ -9,6 +9,7 @@
 #include "quasimap/coverage/grouped_allele_counts.hpp"
 
 #include "quasimap/coverage/common.hpp"
+#include "search/search.hpp"
 
 
 using namespace gram;
@@ -158,7 +159,7 @@ SearchStates gram::filter_for_path_sites(const PathSites &target_path_sites,
  *  * The read maps through a single site/allele combination, multiple times. This means the read is **encapsulated** inside
  *  two different alleles of the same site. Randomly select and return only one of those.
  */
-SearchStates selection(const SearchStates &search_states,
+SearchStates gram::selection(const SearchStates &search_states,
                        const uint64_t &read_length,
                        const PRG_Info &prg_info,
                        const uint32_t &random_seed) {
@@ -166,10 +167,24 @@ SearchStates selection(const SearchStates &search_states,
     // Extract the unique path sites: vectors of site IDs traversed.
     auto path_sites = get_unique_path_sites(search_states);
 
+    std::cout << "Entering selection phase, from searchstates: " << std::endl;
+    for (auto search_state:search_states){
+        std::cout << search_state;
+    }
+    std::cout << "Variant paths: " << std::endl;
+    for (auto path_site:path_sites){
+        std::cout << "New path: ";
+        for (auto marker:path_site){
+            std::cout << marker << "\t";
+        }
+        std::cout << std::endl;
+    }
     uint64_t count_total_options = nonvariant_count + path_sites.size();
     if (count_total_options == 0)
         return SearchStates{};
     uint64_t selected_option = random_int_inclusive(1, count_total_options, random_seed);
+
+    std::cout << "Seed: " << random_seed << "\t Selection: " << selected_option << std::endl;
 
     // If we select a non-variant path, return empty `SearchStates`, leading to no coverage information.
     bool selected_no_path = selected_option <= nonvariant_count;
@@ -181,6 +196,12 @@ SearchStates selection(const SearchStates &search_states,
     auto it = path_sites.begin();
     std::advance(it, paths_sites_offset);
     auto selected_path_sites = *it; // a single vector of site IDs (sites path)
+
+    std::cout << "Selected path: ";
+    for (auto marker:selected_path_sites){
+        std::cout << marker << "\t";
+    }
+    std::cout << std::endl << std::endl;
 
     // Filter all given search states for the single randomly selected vector of site_id (site path).
     // Allele IDs are not considered at this point.
@@ -229,3 +250,4 @@ Coverage coverage::generate::empty_structure(const PRG_Info &prg_info) {
     coverage.grouped_allele_counts = coverage::generate::grouped_allele_counts(prg_info);
     return coverage;
 }
+
